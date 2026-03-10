@@ -1,0 +1,6 @@
+.chrome-profile
+build
+.svelte-kit
+coverage
+node_modules
+static/data/*.sqlite

@@ -1,0 +1,34 @@
+node_modules
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+/.svelte-kit
+/build
+/static/data/*.sqlite
+/static/data/*.sqlite-*
+/static/data/*.db
+/static/data/*.db-*
+
+# Local data and sensitive artifacts
+.wolt/
+.wolt-config.json
+*.wolt-config.json
+.chrome-profile/
+.tmp-*.png
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*

@@ -1,0 +1,48 @@
+{
+	"name": "wolt-stats",
+	"private": true,
+	"version": "0.0.1",
+	"type": "module",
+	"scripts": {
+		"dev": "vite dev",
+		"build": "vite build",
+		"build:pages": "BASE_PATH=/wolt-stats vite build",
+		"db:sync": "./scripts/sync-wolt-history.sh",
+		"preview": "vite preview",
+		"prepare": "svelte-kit sync || echo ''",
+		"lint": "eslint \"src/**/*.{ts,js}\" \"scripts/**/*.{ts,js,mjs}\" \"*.config.{js,ts}\"",
+		"format": "prettier --write .",
+		"format:check": "prettier --check .",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
+		"validate": "npm run format:check && npm run lint && npm run test && npm run check && npm run build"
+	},
+	"devDependencies": {
+		"@eslint/js": "^10.0.1",
+		"@sveltejs/adapter-static": "^3.0.10",
+		"@sveltejs/kit": "^2.50.2",
+		"@sveltejs/vite-plugin-svelte": "^6.2.4",
+		"@tailwindcss/vite": "^4.1.18",
+		"@types/d3": "^7.4.3",
+		"@types/sql.js": "^1.4.9",
+		"eslint": "^10.0.3",
+		"eslint-config-prettier": "^10.1.8",
+		"eslint-plugin-svelte": "^3.15.2",
+		"globals": "^17.4.0",
+		"prettier": "^3.8.1",
+		"prettier-plugin-svelte": "^3.5.1",
+		"svelte": "^5.51.0",
+		"svelte-check": "^4.4.2",
+		"tailwindcss": "^4.1.18",
+		"typescript": "^5.9.3",
+		"typescript-eslint": "^8.57.0",
+		"vite": "^7.3.1",
+		"vitest": "^4.0.18"
+	},
+	"dependencies": {
+		"d3": "^7.9.0",
+		"sql.js": "^1.14.1"
+	}
+}
