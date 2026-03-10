@@ -4,6 +4,7 @@
 	import BarChart from '$lib/components/BarChart.svelte';
 	import HeatmapChart from '$lib/components/HeatmapChart.svelte';
 	import LineChart from '$lib/components/LineChart.svelte';
+	import ModalShell from '$lib/components/ModalShell.svelte';
 	import OrderLedger from '$lib/components/OrderLedger.svelte';
 	import ProductSpotlight from '$lib/components/ProductSpotlight.svelte';
 	import RankList from '$lib/components/RankList.svelte';
@@ -1221,20 +1222,6 @@
 				</section>
 
 				<section class="reveal mt-5">
-					<ProductSpotlight
-						canToggleScope={Boolean(productFocus?.venueId)}
-						itemName={productFocus?.itemName ?? null}
-						orderCountSeries={productOrderHistory}
-						priceBreakdownSeries={productPriceHistory}
-						profile={productProfile}
-						scopeMode={productFocus?.scope ?? 'slice'}
-						venueName={productFocus?.venueName ?? null}
-						on:clear={clearProductFocus}
-						on:scopechange={handleProductScopeChange}
-					/>
-				</section>
-
-				<section class="reveal mt-5">
 					<RankList
 						items={topItemRows}
 						subtitle="Unit counts show what keeps coming back across the current slice."
@@ -1257,23 +1244,6 @@
 						on:productselect={handleProductSelect}
 					/>
 				</section>
-
-				{#if productFocus}
-					<section class="reveal mt-5">
-						<ProductSpotlight
-							canToggleScope={Boolean(productFocus?.venueId)}
-							itemName={productFocus?.itemName ?? null}
-							orderCountSeries={productOrderHistory}
-							priceBreakdownSeries={productPriceHistory}
-							profile={productProfile}
-							scopeMode={productFocus?.scope ?? 'slice'}
-							venueName={productFocus?.venueName ?? null}
-							on:clear={clearProductFocus}
-							on:scopechange={handleProductScopeChange}
-						/>
-					</section>
-				{/if}
-
 				<section class="reveal mt-5">
 					<RankList
 						items={topVenueItems}
@@ -1284,4 +1254,22 @@
 			{/if}
 		{/if}
 	</div>
+
+	{#if productFocus}
+		<ModalShell title={productFocus.itemName} on:close={clearProductFocus}>
+			<ProductSpotlight
+				canToggleScope={Boolean(productFocus?.venueId)}
+				dismissLabel="Close replay"
+				itemName={productFocus?.itemName ?? null}
+				orderCountSeries={productOrderHistory}
+				priceBreakdownSeries={productPriceHistory}
+				profile={productProfile}
+				scopeMode={productFocus?.scope ?? 'slice'}
+				showDismissButton={false}
+				venueName={productFocus?.venueName ?? null}
+				on:clear={clearProductFocus}
+				on:scopechange={handleProductScopeChange}
+			/>
+		</ModalShell>
+	{/if}
 {/if}

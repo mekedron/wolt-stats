@@ -17,10 +17,12 @@
 	} from '$lib/utils/format';
 
 	export let canToggleScope = false;
+	export let dismissLabel = 'Clear product';
 	export let itemName: string | null = null;
 	export let orderCountSeries: SeriesPoint[] = [];
 	export let priceBreakdownSeries: MetricSeriesPoint[] = [];
 	export let profile: ProductProfile | null = null;
+	export let showDismissButton = true;
 	export let scopeMode: 'slice' | 'venue' = 'slice';
 	export let venueName: string | null = null;
 
@@ -68,13 +70,13 @@
 			</p>
 		</div>
 
-		{#if itemName}
+		{#if itemName && showDismissButton}
 			<button
 				type="button"
 				class="rounded-full border border-ink/12 bg-white/75 px-4 py-2 text-sm text-ink transition hover:-translate-y-0.5 hover:border-accent/30"
 				on:click={() => dispatch('clear')}
 			>
-				Clear product
+				{dismissLabel}
 			</button>
 		{/if}
 	</div>
