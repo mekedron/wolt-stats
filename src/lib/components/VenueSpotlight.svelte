@@ -267,11 +267,21 @@
 									<div
 										class="flex flex-wrap items-center justify-between gap-2"
 									>
-										<span>Latest observed price</span>
+										<span>Latest line price</span>
 										<strong class="text-ink">
-											{item.latestUnitPriceMinor === null
+											{item.latestLinePriceMinor === null
 												? '—'
-												: formatMoney(item.latestUnitPriceMinor, item.currency)}
+												: formatMoney(item.latestLinePriceMinor, item.currency)}
+										</strong>
+									</div>
+									<div
+										class="flex flex-wrap items-center justify-between gap-2"
+									>
+										<span>Latest paid price</span>
+										<strong class="text-ink">
+											{item.latestNetPriceMinor === null
+												? '—'
+												: formatMoney(item.latestNetPriceMinor, item.currency)}
 										</strong>
 									</div>
 									<div
@@ -279,9 +289,9 @@
 									>
 										<span>Typical paid price</span>
 										<strong class="text-ink">
-											{item.medianUnitPriceMinor === null
+											{item.medianNetPriceMinor === null
 												? '—'
-												: formatMoney(item.medianUnitPriceMinor, item.currency)}
+												: formatMoney(item.medianNetPriceMinor, item.currency)}
 										</strong>
 									</div>
 								</div>

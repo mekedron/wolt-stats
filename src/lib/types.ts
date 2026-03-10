@@ -180,8 +180,9 @@ export type ProductProfile = {
 export type MenuMemoryItem = {
 	currency: string;
 	lastSeen: string | null;
-	latestUnitPriceMinor: number | null;
-	medianUnitPriceMinor: number | null;
+	latestLinePriceMinor: number | null;
+	latestNetPriceMinor: number | null;
+	medianNetPriceMinor: number | null;
 	name: string;
 	orderCount: number;
 	unitCount: number;

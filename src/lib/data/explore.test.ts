@@ -199,8 +199,9 @@ describe('explore queries', () => {
 			{
 				currency: 'EUR',
 				lastSeen: '2025-02-05',
-				latestUnitPriceMinor: 1400,
-				medianUnitPriceMinor: 1200,
+				latestLinePriceMinor: 1400,
+				latestNetPriceMinor: 1400,
+				medianNetPriceMinor: 1200,
 				name: 'Burger',
 				orderCount: 2,
 				unitCount: 3,
@@ -208,8 +209,9 @@ describe('explore queries', () => {
 			{
 				currency: 'EUR',
 				lastSeen: '2025-04-08',
-				latestUnitPriceMinor: 1500,
-				medianUnitPriceMinor: 1500,
+				latestLinePriceMinor: 1500,
+				latestNetPriceMinor: 1500,
+				medianNetPriceMinor: 1500,
 				name: 'Pasta',
 				orderCount: 1,
 				unitCount: 2,
@@ -217,13 +219,54 @@ describe('explore queries', () => {
 			{
 				currency: 'EUR',
 				lastSeen: '2025-04-08',
-				latestUnitPriceMinor: 200,
-				medianUnitPriceMinor: 200,
+				latestLinePriceMinor: 200,
+				latestNetPriceMinor: 200,
+				medianNetPriceMinor: 200,
 				name: 'Dessert',
 				orderCount: 1,
 				unitCount: 1,
 			},
 		]);
+	});
+
+	it('applies order-level discounts to venue memory paid prices', () => {
+		const db = createExploreDatabase();
+		insertOrderWithItems(db, {
+			city: 'Espoo',
+			currency: 'EUR',
+			discountAmountMinor: 500,
+			feesMinor: 200,
+			items: [
+				{
+					itemName: 'Discount Burger',
+					lineTotalMinor: 2000,
+					quantity: 1,
+					unitPriceMinor: 2000,
+				},
+			],
+			orderLocalDate: '2025-05-10',
+			paymentTimeTs: Date.UTC(2025, 4, 10, 12),
+			purchaseId: 'order-a4',
+			totalAmountMinor: 1700,
+			venueCountry: 'FIN',
+			venueId: 'venue-a',
+			venueName: 'Pasta Corner',
+		});
+
+		expect(
+			getMenuMemoryItems(db, { ...filters, venueId: 'venue-a' }, 10).find(
+				(item) => item.name === 'Discount Burger',
+			),
+		).toEqual({
+			currency: 'EUR',
+			lastSeen: '2025-05-10',
+			latestLinePriceMinor: 2000,
+			latestNetPriceMinor: 1500,
+			medianNetPriceMinor: 1500,
+			name: 'Discount Burger',
+			orderCount: 1,
+			unitCount: 1,
+		});
 	});
 });
 

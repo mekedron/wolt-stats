@@ -307,6 +307,8 @@ export function getMenuMemoryItems(
 			i.unit_price_minor,
 			i.line_total_minor,
 			o.currency,
+			o.discount_amount_minor,
+			o.items_amount_minor,
 			o.payment_time_ts,
 			o.order_local_date
 		FROM order_items i
@@ -324,10 +326,11 @@ export function getMenuMemoryItems(
 			currency: string;
 			latestPaymentTimeTs: number;
 			lastSeen: string | null;
-			latestUnitPriceMinor: number | null;
+			latestLinePriceMinor: number | null;
+			latestNetPriceMinor: number | null;
 			name: string;
+			netPrices: number[];
 			orderIds: Set<string>;
-			prices: number[];
 			unitCount: number;
 		}
 	>();
@@ -336,28 +339,29 @@ export function getMenuMemoryItems(
 		const name = asString(row.item_name) ?? 'Unknown item';
 		const currency = asString(row.currency) ?? 'EUR';
 		const key = `${name}\u0000${currency}`;
-		const unitPriceMinor = resolveUnitPriceMinor(row);
+		const linePriceMinor = resolveLineUnitPriceMinor(row);
+		const netPriceMinor = resolveNetUnitPriceMinor(row);
 		const purchaseId = asString(row.purchase_id) ?? '';
 		const next = grouped.get(key) ?? {
 			currency,
 			latestPaymentTimeTs: -1,
 			lastSeen: null as string | null,
-			latestUnitPriceMinor: null,
+			latestLinePriceMinor: null,
+			latestNetPriceMinor: null,
 			name,
+			netPrices: [],
 			orderIds: new Set<string>(),
-			prices: [],
 			unitCount: 0,
 		};
 		const paymentTimeTs = asNumber(row.payment_time_ts);
 		if (paymentTimeTs >= next.latestPaymentTimeTs) {
 			next.latestPaymentTimeTs = paymentTimeTs;
-			next.latestUnitPriceMinor = unitPriceMinor;
+			next.latestLinePriceMinor = linePriceMinor;
+			next.latestNetPriceMinor = netPriceMinor;
 			next.lastSeen = nullableString(row.order_local_date);
 		}
 		next.orderIds.add(purchaseId);
-		if (unitPriceMinor !== null) {
-			next.prices.push(unitPriceMinor);
-		}
+		next.netPrices.push(netPriceMinor);
 		next.unitCount += Math.max(1, asNumber(row.quantity));
 		grouped.set(key, next);
 	}
@@ -366,8 +370,9 @@ export function getMenuMemoryItems(
 		.map((row) => ({
 			currency: row.currency,
 			lastSeen: row.lastSeen,
-			latestUnitPriceMinor: row.latestUnitPriceMinor,
-			medianUnitPriceMinor: row.prices.length ? median(row.prices) : null,
+			latestLinePriceMinor: row.latestLinePriceMinor,
+			latestNetPriceMinor: row.latestNetPriceMinor,
+			medianNetPriceMinor: row.netPrices.length ? median(row.netPrices) : null,
 			name: row.name,
 			orderCount: row.orderIds.size,
 			unitCount: row.unitCount,
