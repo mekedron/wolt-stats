@@ -4,6 +4,7 @@ import type {
 	DashboardFilters,
 	MenuMemoryItem,
 	MetricSeriesPoint,
+	OrderLedgerPage,
 	OrderLineItem,
 	OrderRecord,
 	ProductProfile,
@@ -27,12 +28,48 @@ type ProductObservation = {
 	venueId: string | null;
 };
 
-export function getRecentOrders(
+export function getOrderLedgerPage(
 	db: SqlDatabase,
 	filters: DashboardFilters,
-	limit = 18,
-): OrderRecord[] {
+	{
+		limit = 25,
+		offset = 0,
+	}: {
+		limit?: number | null;
+		offset?: number;
+	} = {},
+): OrderLedgerPage {
 	const scope = buildOrderScope(filters);
+	const totalOrders = asNumber(
+		queryFirst<SqlRow>(
+			db,
+			`SELECT COUNT(*) AS total_orders
+			FROM orders
+			${scope.where}`,
+			scope.params,
+		)?.total_orders,
+	);
+	const safeLimit =
+		typeof limit === 'number' && Number.isFinite(limit) && limit > 0
+			? Math.floor(limit)
+			: null;
+	const safeOffset =
+		safeLimit === null || totalOrders === 0
+			? 0
+			: Math.min(
+					Math.max(0, Math.floor(offset)),
+					Math.floor((totalOrders - 1) / safeLimit) * safeLimit,
+				);
+
+	if (totalOrders === 0) {
+		return {
+			limit: safeLimit,
+			offset: 0,
+			orders: [],
+			totalOrders: 0,
+		};
+	}
+
 	const orderRows = queryAll<SqlRow>(
 		db,
 		`SELECT
@@ -54,70 +91,26 @@ export function getRecentOrders(
 		FROM orders
 		${scope.where}
 		ORDER BY payment_time_ts DESC
-		LIMIT ?`,
-		[...scope.params, limit],
+		${safeLimit === null ? '' : 'LIMIT ? OFFSET ?'}`,
+		safeLimit === null
+			? scope.params
+			: [...scope.params, safeLimit, safeOffset],
 	);
 
-	if (orderRows.length === 0) {
-		return [];
-	}
+	return {
+		limit: safeLimit,
+		offset: safeOffset,
+		orders: hydrateOrderRecords(db, scope, orderRows),
+		totalOrders,
+	};
+}
 
-	const purchaseIds = orderRows.map((row) => asString(row.purchase_id) ?? '');
-	const placeholders = purchaseIds.map(() => '?').join(', ');
-	const itemRows = queryAll<SqlRow>(
-		db,
-		`SELECT
-			i.purchase_id,
-			i.item_index,
-			i.item_name,
-			i.quantity,
-			i.unit_price_minor,
-			i.line_total_minor
-		FROM order_items i
-		JOIN orders o
-			ON o.user_id = i.user_id
-			AND o.purchase_id = i.purchase_id
-		${appendCondition(replaceOrdersAlias(scope.where, 'o'), `o.purchase_id IN (${placeholders})`)}
-		ORDER BY o.payment_time_ts DESC, i.item_index ASC`,
-		[...scope.params, ...purchaseIds],
-	);
-
-	const itemsByPurchase = new Map<string, OrderLineItem[]>();
-	for (const row of itemRows) {
-		const purchaseId = asString(row.purchase_id) ?? '';
-		const bucket = itemsByPurchase.get(purchaseId) ?? [];
-		bucket.push({
-			itemName: asString(row.item_name) ?? 'Unknown item',
-			lineTotalMinor: asNumber(row.line_total_minor),
-			quantity: Math.max(1, asNumber(row.quantity)),
-			unitPriceMinor: resolveUnitPriceMinor(row) ?? 0,
-		});
-		itemsByPurchase.set(purchaseId, bucket);
-	}
-
-	return orderRows.map((row) => {
-		const totalMinor = asNumber(row.total_amount_minor);
-		const feesMinor = asNumber(row.fees_minor);
-		return {
-			currency: asString(row.currency) ?? 'EUR',
-			deliveryCity: nullableString(row.delivery_city),
-			feeShare: totalMinor > 0 ? feesMinor / totalMinor : null,
-			feesMinor,
-			items: itemsByPurchase.get(asString(row.purchase_id) ?? '') ?? [],
-			itemsSummary: nullableString(row.items_summary),
-			orderLocalDate: nullableString(row.order_local_date),
-			orderLocalDateTime: nullableString(row.order_local_datetime),
-			orderNumber: nullableString(row.order_number),
-			paymentMethodName: nullableString(row.payment_method_name),
-			paymentTimeTs: asNumber(row.payment_time_ts),
-			productLine: nullableString(row.venue_product_line),
-			purchaseId: asString(row.purchase_id) ?? '',
-			totalMinor,
-			venueCountry: asString(row.venue_country) ?? 'UNK',
-			venueId: nullableString(row.venue_id),
-			venueName: asString(row.venue_name) ?? 'Unknown venue',
-		};
-	});
+export function getRecentOrders(
+	db: SqlDatabase,
+	filters: DashboardFilters,
+	limit = 18,
+): OrderRecord[] {
+	return getOrderLedgerPage(db, filters, { limit, offset: 0 }).orders;
 }
 
 export function getProductPriceSeries(
@@ -699,6 +692,73 @@ function daypartExpression() {
 
 function cityExpression() {
 	return `COALESCE(NULLIF(TRIM(delivery_city), ''), 'Unknown')`;
+}
+
+function hydrateOrderRecords(
+	db: SqlDatabase,
+	scope: ReturnType<typeof buildOrderScope>,
+	orderRows: SqlRow[],
+) {
+	if (orderRows.length === 0) {
+		return [];
+	}
+
+	const purchaseIds = orderRows.map((row) => asString(row.purchase_id) ?? '');
+	const placeholders = purchaseIds.map(() => '?').join(', ');
+	const itemRows = queryAll<SqlRow>(
+		db,
+		`SELECT
+			i.purchase_id,
+			i.item_index,
+			i.item_name,
+			i.quantity,
+			i.unit_price_minor,
+			i.line_total_minor
+		FROM order_items i
+		JOIN orders o
+			ON o.user_id = i.user_id
+			AND o.purchase_id = i.purchase_id
+		${appendCondition(replaceOrdersAlias(scope.where, 'o'), `o.purchase_id IN (${placeholders})`)}
+		ORDER BY o.payment_time_ts DESC, i.item_index ASC`,
+		[...scope.params, ...purchaseIds],
+	);
+
+	const itemsByPurchase = new Map<string, OrderLineItem[]>();
+	for (const row of itemRows) {
+		const purchaseId = asString(row.purchase_id) ?? '';
+		const bucket = itemsByPurchase.get(purchaseId) ?? [];
+		bucket.push({
+			itemName: asString(row.item_name) ?? 'Unknown item',
+			lineTotalMinor: asNumber(row.line_total_minor),
+			quantity: Math.max(1, asNumber(row.quantity)),
+			unitPriceMinor: resolveUnitPriceMinor(row) ?? 0,
+		});
+		itemsByPurchase.set(purchaseId, bucket);
+	}
+
+	return orderRows.map((row) => {
+		const totalMinor = asNumber(row.total_amount_minor);
+		const feesMinor = asNumber(row.fees_minor);
+		return {
+			currency: asString(row.currency) ?? 'EUR',
+			deliveryCity: nullableString(row.delivery_city),
+			feeShare: totalMinor > 0 ? feesMinor / totalMinor : null,
+			feesMinor,
+			items: itemsByPurchase.get(asString(row.purchase_id) ?? '') ?? [],
+			itemsSummary: nullableString(row.items_summary),
+			orderLocalDate: nullableString(row.order_local_date),
+			orderLocalDateTime: nullableString(row.order_local_datetime),
+			orderNumber: nullableString(row.order_number),
+			paymentMethodName: nullableString(row.payment_method_name),
+			paymentTimeTs: asNumber(row.payment_time_ts),
+			productLine: nullableString(row.venue_product_line),
+			purchaseId: asString(row.purchase_id) ?? '',
+			totalMinor,
+			venueCountry: asString(row.venue_country) ?? 'UNK',
+			venueId: nullableString(row.venue_id),
+			venueName: asString(row.venue_name) ?? 'Unknown venue',
+		} satisfies OrderRecord;
+	});
 }
 
 function appendCondition(whereClause: string, condition: string) {

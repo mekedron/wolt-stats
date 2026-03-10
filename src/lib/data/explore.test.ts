@@ -2,6 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest';
 import initSqlJs from 'sql.js';
 
 import {
+	getOrderLedgerPage,
 	getMenuMemoryItems,
 	getProductOrderCountSeries,
 	getProductPriceBreakdownSeries,
@@ -59,6 +60,36 @@ describe('explore queries', () => {
 			},
 		]);
 		expect(orders[1]?.purchaseId).toBe('order-b1');
+	});
+
+	it('pages through the full filtered order ledger and can return all matches', () => {
+		const db = createExploreDatabase();
+
+		expect(
+			getOrderLedgerPage(db, filters, { limit: 2, offset: 0 }),
+		).toMatchObject({
+			limit: 2,
+			offset: 0,
+			totalOrders: 4,
+		});
+		expect(
+			getOrderLedgerPage(db, filters, { limit: 2, offset: 0 }).orders.map(
+				(order) => order.purchaseId,
+			),
+		).toEqual(['order-a3', 'order-b1']);
+		expect(
+			getOrderLedgerPage(db, filters, { limit: 2, offset: 2 }).orders.map(
+				(order) => order.purchaseId,
+			),
+		).toEqual(['order-a2', 'order-a1']);
+		expect(
+			getOrderLedgerPage(db, filters, { limit: 2, offset: 99 }).offset,
+		).toBe(2);
+		expect(
+			getOrderLedgerPage(db, filters, { limit: null, offset: 99 }).orders.map(
+				(order) => order.purchaseId,
+			),
+		).toEqual(['order-a3', 'order-b1', 'order-a2', 'order-a1']);
 	});
 
 	it('builds product price trends and distinct-order counts for repeated items', () => {

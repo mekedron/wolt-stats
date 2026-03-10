@@ -11,11 +11,11 @@
 	import StatCard from '$lib/components/StatCard.svelte';
 	import VenueSpotlight from '$lib/components/VenueSpotlight.svelte';
 	import {
+		getOrderLedgerPage,
 		getMenuMemoryItems,
 		getProductOrderCountSeries,
 		getProductPriceBreakdownSeries,
 		getProductProfile,
-		getRecentOrders,
 		getVenueSnapshot,
 	} from '$lib/data/explore';
 	import { loadDatabase } from '$lib/data/load-db';
@@ -45,6 +45,7 @@
 		ItemRank,
 		MenuMemoryItem,
 		MetricSeriesPoint,
+		OrderLedgerPage,
 		OrderRecord,
 		ProductProfile,
 		RankItem,
@@ -151,7 +152,13 @@
 	let topVenues: VenueRank[] = [];
 	let topItems: ItemRank[] = [];
 	let trendPulse: CurrencyTrendPulse[] = [];
-	let recentOrders: OrderRecord[] = [];
+	let orderLedger: OrderLedgerPage = {
+		limit: 25,
+		offset: 0,
+		orders: [],
+		totalOrders: 0,
+	};
+	let orderPageSize: number | 'all' = 25;
 	let productFocus: ProductFocusState | null = null;
 	let productProfile: ProductProfile | null = null;
 	let productPriceHistory: MetricSeriesPoint[] = [];
@@ -212,9 +219,16 @@
 	$: topVenueItems = toVenueRankItems(topVenues);
 	$: topItemRows = toItemRankItems(topItems);
 
-	function refreshDashboard() {
+	function refreshDashboard({ resetOrderLedger = false } = {}) {
 		if (!database) {
 			return;
+		}
+
+		if (resetOrderLedger) {
+			orderLedger = {
+				...orderLedger,
+				offset: 0,
+			};
 		}
 
 		summary = getSummaryMetrics(database, filters);
@@ -228,7 +242,10 @@
 		topVenues = getTopVenues(database, filters);
 		topItems = getTopItems(database, filters);
 		trendPulse = getCurrencyTrendPulse(database, filters);
-		recentOrders = getRecentOrders(database, filters, 12);
+		orderLedger = getOrderLedgerPage(database, filters, {
+			limit: orderPageSize === 'all' ? null : orderPageSize,
+			offset: orderPageSize === 'all' ? 0 : orderLedger.offset,
+		});
 
 		const activeVenueId =
 			filters.venueId !== 'all'
@@ -332,43 +349,43 @@
 			},
 			scoped.venues,
 		);
-		refreshDashboard();
+		refreshDashboard({ resetOrderLedger: true });
 	}
 
 	function handleCountryChange(nextCountry: string) {
 		filters = normalizeVenueSelection({ ...filters, country: nextCountry });
-		refreshDashboard();
+		refreshDashboard({ resetOrderLedger: true });
 	}
 
 	function handleCurrencyChange(nextCurrency: string) {
 		filters = { ...filters, currency: nextCurrency };
-		refreshDashboard();
+		refreshDashboard({ resetOrderLedger: true });
 	}
 
 	function handleCityChange(nextCity: string) {
 		filters = normalizeVenueSelection({ ...filters, city: nextCity });
-		refreshDashboard();
+		refreshDashboard({ resetOrderLedger: true });
 	}
 
 	function handleProductLineChange(nextProductLine: string) {
 		filters = { ...filters, productLine: nextProductLine };
-		refreshDashboard();
+		refreshDashboard({ resetOrderLedger: true });
 	}
 
 	function handleVenueChange(nextVenueId: string) {
 		venueFocus = null;
 		filters = { ...filters, venueId: nextVenueId };
-		refreshDashboard();
+		refreshDashboard({ resetOrderLedger: true });
 	}
 
 	function handleDayKindChange(nextDayKind: string) {
 		filters = { ...filters, dayKind: nextDayKind };
-		refreshDashboard();
+		refreshDashboard({ resetOrderLedger: true });
 	}
 
 	function handleDaypartChange(nextDaypart: string) {
 		filters = { ...filters, daypart: nextDaypart };
-		refreshDashboard();
+		refreshDashboard({ resetOrderLedger: true });
 	}
 
 	function handleStartDateChange(nextDate: string) {
@@ -380,7 +397,7 @@
 				? nextStart
 				: filters.endDate;
 		filters = { ...filters, endDate: nextEnd, startDate: nextStart };
-		refreshDashboard();
+		refreshDashboard({ resetOrderLedger: true });
 	}
 
 	function handleEndDateChange(nextDate: string) {
@@ -392,7 +409,7 @@
 				? nextEnd
 				: filters.startDate;
 		filters = { ...filters, endDate: nextEnd, startDate: nextStart };
-		refreshDashboard();
+		refreshDashboard({ resetOrderLedger: true });
 	}
 
 	function applyWindow(days: number | 'all') {
@@ -418,7 +435,7 @@
 			};
 		}
 
-		refreshDashboard();
+		refreshDashboard({ resetOrderLedger: true });
 	}
 
 	function hasOption(options: FilterMetadata['countries'], value: string) {
@@ -484,6 +501,27 @@
 			venueName: event.detail.venueName,
 		};
 		activeView = event.detail.source === 'venue' ? 'venues' : 'orders';
+		refreshDashboard();
+	}
+
+	function handleOrderLedgerPageChange(event: CustomEvent<number>) {
+		if (orderPageSize === 'all') {
+			return;
+		}
+
+		orderLedger = {
+			...orderLedger,
+			offset: Math.max(0, event.detail) * orderPageSize,
+		};
+		refreshDashboard();
+	}
+
+	function handleOrderLedgerPageSizeChange(event: CustomEvent<number | 'all'>) {
+		orderPageSize = event.detail;
+		orderLedger = {
+			...orderLedger,
+			offset: 0,
+		};
 		refreshDashboard();
 	}
 
@@ -1215,7 +1253,12 @@
 			{#if activeView === 'orders'}
 				<section class="reveal mt-5">
 					<OrderLedger
-						orders={recentOrders}
+						offset={orderLedger.offset}
+						orders={orderLedger.orders}
+						pageSize={orderPageSize}
+						totalOrders={orderLedger.totalOrders}
+						on:pagechange={handleOrderLedgerPageChange}
+						on:pagesizechange={handleOrderLedgerPageSizeChange}
 						on:productselect={handleProductSelect}
 						on:venueselect={handleVenueSelect}
 					/>

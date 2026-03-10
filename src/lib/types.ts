@@ -72,6 +72,13 @@ export type OrderRecord = {
 	venueName: string;
 };
 
+export type OrderLedgerPage = {
+	limit: number | null;
+	offset: number;
+	orders: OrderRecord[];
+	totalOrders: number;
+};
+
 export type SummaryMetrics = {
 	totalOrders: number;
 	activeDays: number;
