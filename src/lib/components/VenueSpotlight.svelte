@@ -53,6 +53,35 @@
 		return detail.join(' · ');
 	}
 
+	function menuPrice(value: number | null, currency: string) {
+		return value === null ? '—' : formatMoney(value, currency);
+	}
+
+	function latestPriceSummary(item: MenuMemoryItem) {
+		const line = menuPrice(item.latestLinePriceMinor, item.currency);
+		const paid = menuPrice(item.latestNetPriceMinor, item.currency);
+
+		if (
+			item.latestLinePriceMinor === null &&
+			item.latestNetPriceMinor === null
+		) {
+			return '—';
+		}
+
+		if (
+			item.latestLinePriceMinor !== null &&
+			item.latestNetPriceMinor !== null
+		) {
+			if (item.latestLinePriceMinor === item.latestNetPriceMinor) {
+				return `${paid} paid = line`;
+			}
+
+			return `${paid} paid · ${line} line`;
+		}
+
+		return item.latestNetPriceMinor !== null ? `${paid} paid` : `${line} line`;
+	}
+
 	function trackItem(itemName: string) {
 		dispatch('productselect', {
 			itemName,
@@ -155,151 +184,139 @@
 			/>
 		</div>
 
-		<div class="grid gap-4 xl:grid-cols-[minmax(0,1.25fr)_minmax(18rem,0.9fr)]">
-			<div class="grid gap-4">
-				<section class="grid gap-4">
-					<div class="grid gap-1">
-						<h3 class="text-2xl text-ink">Venue price curve</h3>
-						<p class="text-sm leading-6 text-ink-soft">
-							Typical monthly basket value for this venue.
-						</p>
-					</div>
-
-					{#if medianGroups.length === 0}
-						<p
-							class="rounded-[1.1rem] border border-dashed border-ink/18 bg-white/58 px-4 py-4 text-sm leading-6 text-ink-soft"
-						>
-							No monthly basket series inside this slice.
-						</p>
-					{:else}
-						<div class="grid gap-4">
-							{#each medianGroups as group, index}
-								<LineChart
-									accent={palette[index % palette.length]}
-									currency={group.key}
-									data={group.rows.map((row) => ({
-										label: row.label,
-										value: row.value,
-									}))}
-									format="currency"
-									granularity="month"
-									subtitle="Monthly median order total at this venue."
-									title={group.key}
-								/>
-							{/each}
-						</div>
-					{/if}
-				</section>
-
-				<section class="grid gap-4">
-					<div class="grid gap-1">
-						<h3 class="text-2xl text-ink">Venue cadence</h3>
-						<p class="text-sm leading-6 text-ink-soft">
-							How often the venue appears in your history, grouped by month.
-						</p>
-					</div>
-
-					{#if orderGroups.length === 0}
-						<p
-							class="rounded-[1.1rem] border border-dashed border-ink/18 bg-white/58 px-4 py-4 text-sm leading-6 text-ink-soft"
-						>
-							No order-count series inside this slice.
-						</p>
-					{:else}
-						<div class="grid gap-4">
-							{#each orderGroups as group, index}
-								<LineChart
-									accent={palette[(index + 1) % palette.length]}
-									currency={group.key}
-									data={group.rows.map((row) => ({
-										label: row.label,
-										value: row.value,
-									}))}
-									format="count"
-									granularity="month"
-									subtitle="Distinct orders from this venue."
-									title={group.key}
-								/>
-							{/each}
-						</div>
-					{/if}
-				</section>
-			</div>
-
-			<section class="card-surface min-w-0 overflow-hidden grid gap-4 p-5">
+		<div class="grid gap-4 xl:grid-cols-2 xl:items-start">
+			<section class="grid min-w-0 content-start gap-4">
 				<div class="grid gap-1">
-					<h3 class="text-2xl text-ink">Menu memory</h3>
+					<h3 class="text-2xl text-ink">Venue price curve</h3>
 					<p class="text-sm leading-6 text-ink-soft">
-						Most repeated items from paid orders only. Click one to open its
-						price trend.
+						Typical monthly basket value for this venue.
 					</p>
 				</div>
 
-				{#if menuMemoryItems.length === 0}
-					<p class="text-sm leading-6 text-ink-soft">
-						No remembered menu rows inside this slice.
+				{#if medianGroups.length === 0}
+					<p
+						class="rounded-[1.1rem] border border-dashed border-ink/18 bg-white/58 px-4 py-4 text-sm leading-6 text-ink-soft"
+					>
+						No monthly basket series inside this slice.
 					</p>
 				{:else}
-					<ol class="grid gap-3">
-						{#each menuMemoryItems as item, index}
-							<li class="rounded-[1.2rem] border border-ink/10 bg-white/78 p-3">
-								<div class="flex items-start gap-3">
-									<span
-										class="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-olive/12 font-bold text-olive"
-									>
-										{index + 1}
-									</span>
-									<div class="min-w-0 flex-1">
-										<button
-											type="button"
-											class="break-words text-left text-base font-semibold text-ink underline decoration-accent/35 underline-offset-4 transition hover:text-accent-deep"
-											on:click={() => trackItem(item.name)}
-										>
-											{item.name}
-										</button>
-										<p class="mt-1 break-words text-sm leading-6 text-ink-soft">
-											{menuSubtitle(item)}
-										</p>
-									</div>
-								</div>
-
-								<div class="mt-3 grid gap-2 text-sm text-ink-soft">
-									<div
-										class="flex flex-wrap items-center justify-between gap-2"
-									>
-										<span>Latest line price</span>
-										<strong class="text-ink">
-											{item.latestLinePriceMinor === null
-												? '—'
-												: formatMoney(item.latestLinePriceMinor, item.currency)}
-										</strong>
-									</div>
-									<div
-										class="flex flex-wrap items-center justify-between gap-2"
-									>
-										<span>Latest paid price</span>
-										<strong class="text-ink">
-											{item.latestNetPriceMinor === null
-												? '—'
-												: formatMoney(item.latestNetPriceMinor, item.currency)}
-										</strong>
-									</div>
-									<div
-										class="flex flex-wrap items-center justify-between gap-2"
-									>
-										<span>Typical paid price</span>
-										<strong class="text-ink">
-											{item.medianNetPriceMinor === null
-												? '—'
-												: formatMoney(item.medianNetPriceMinor, item.currency)}
-										</strong>
-									</div>
-								</div>
-							</li>
+					<div class="grid gap-4">
+						{#each medianGroups as group, index}
+							<LineChart
+								accent={palette[index % palette.length]}
+								currency={group.key}
+								data={group.rows.map((row) => ({
+									label: row.label,
+									value: row.value,
+								}))}
+								format="currency"
+								granularity="month"
+								subtitle="Monthly median order total at this venue."
+								title={group.key}
+							/>
 						{/each}
-					</ol>
+					</div>
+				{/if}
+			</section>
+
+			<section class="grid min-w-0 content-start gap-4">
+				<div class="grid gap-1">
+					<h3 class="text-2xl text-ink">Venue cadence</h3>
+					<p class="text-sm leading-6 text-ink-soft">
+						How often the venue appears in your history, grouped by month.
+					</p>
+				</div>
+
+				{#if orderGroups.length === 0}
+					<p
+						class="rounded-[1.1rem] border border-dashed border-ink/18 bg-white/58 px-4 py-4 text-sm leading-6 text-ink-soft"
+					>
+						No order-count series inside this slice.
+					</p>
+				{:else}
+					<div class="grid gap-4">
+						{#each orderGroups as group, index}
+							<LineChart
+								accent={palette[(index + 1) % palette.length]}
+								currency={group.key}
+								data={group.rows.map((row) => ({
+									label: row.label,
+									value: row.value,
+								}))}
+								format="count"
+								granularity="month"
+								subtitle="Distinct orders from this venue."
+								title={group.key}
+							/>
+						{/each}
+					</div>
 				{/if}
 			</section>
 		</div>
+
+		<section class="card-surface min-w-0 overflow-hidden grid gap-4 p-5">
+			<div class="grid gap-1">
+				<h3 class="text-2xl text-ink">Menu memory</h3>
+				<p class="text-sm leading-6 text-ink-soft">
+					Most repeated items from paid orders only. Click one to open its price
+					trend.
+				</p>
+			</div>
+
+			{#if menuMemoryItems.length === 0}
+				<p class="text-sm leading-6 text-ink-soft">
+					No remembered menu rows inside this slice.
+				</p>
+			{:else}
+				<ol class="grid gap-3 xl:grid-cols-2">
+					{#each menuMemoryItems as item, index}
+						<li class="rounded-[1.2rem] border border-ink/10 bg-white/78 p-3">
+							<div class="flex items-start gap-3">
+								<span
+									class="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-olive/12 font-bold text-olive"
+								>
+									{index + 1}
+								</span>
+								<div class="min-w-0 flex-1">
+									<button
+										type="button"
+										class="break-words text-left text-base font-semibold text-ink underline decoration-accent/35 underline-offset-4 transition hover:text-accent-deep"
+										on:click={() => trackItem(item.name)}
+									>
+										{item.name}
+									</button>
+									<p class="mt-1 break-words text-sm leading-6 text-ink-soft">
+										{menuSubtitle(item)}
+									</p>
+								</div>
+							</div>
+
+							<div class="mt-3 flex flex-wrap gap-2 text-sm">
+								<div
+									class="inline-flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1 rounded-[1rem] border border-accent/16 bg-accent/7 px-3 py-2"
+								>
+									<span
+										class="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-accent-deep/78"
+									>
+										Latest
+									</span>
+									<strong class="break-words text-ink">
+										{latestPriceSummary(item)}
+									</strong>
+								</div>
+								<div
+									class="inline-flex min-w-[11rem] items-center gap-2 rounded-[1rem] border border-ink/10 bg-white/85 px-3 py-2"
+								>
+									<span class="text-ink-soft">Typical paid</span>
+									<strong class="text-ink">
+										{menuPrice(item.medianNetPriceMinor, item.currency)}
+									</strong>
+								</div>
+							</div>
+						</li>
+					{/each}
+				</ol>
+			{/if}
+		</section>
 	{/if}
 </section>

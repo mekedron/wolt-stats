@@ -1,13 +1,44 @@
 @import 'tailwindcss';
 
+@font-face {
+	font-family: 'WoltHeading-Omnes';
+	src: url('/fonts/wolt/OmnesLatin-SemiBold.woff2') format('woff2');
+	font-style: normal;
+	font-weight: 600;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'WoltHeading-Omnes';
+	src: url('/fonts/wolt/OmnesLatin-Bold.woff2') format('woff2');
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'WoltHeading-OmnesCond';
+	src: url('/fonts/wolt/OmnesCondLatin-Black.woff2') format('woff2');
+	font-style: normal;
+	font-weight: 900;
+	font-display: swap;
+}
+
 @theme {
-	--font-sans: 'Space Grotesk', sans-serif;
-	--font-display: 'Fraunces', serif;
+	--font-sans:
+		-apple-system, system-ui, Roboto, 'Segoe UI', Arimo, 'Open Sans', sans-serif;
+	--font-display:
+		'WoltHeading-Omnes', -apple-system, system-ui, Roboto, 'Segoe UI', Arimo,
+		'Open Sans', sans-serif;
+	--font-display-condensed:
+		'WoltHeading-OmnesCond', 'WoltHeading-Omnes', -apple-system, system-ui,
+		Roboto, 'Segoe UI', Arimo, 'Open Sans', sans-serif;
 	--color-ink: #202125;
 	--color-ink-soft: #202125a3;
 	--color-canvas: #ffffff;
 	--color-card: #f5fbfe;
 	--color-accent: #009de0;
+	--color-accent-sky: #57bfe4;
 	--color-accent-deep: #0f2594;
 	--color-olive: #1fc70a;
 	--color-mustard: #fc6200;
@@ -40,7 +71,11 @@
 		@apply min-h-screen bg-[linear-gradient(rgba(255,255,255,0.82),rgba(255,255,255,0.82)),repeating-linear-gradient(135deg,rgba(0,157,224,0.03),rgba(0,157,224,0.03)_1px,transparent_1px,transparent_15px)] font-sans text-ink antialiased;
 	}
 
-	h1,
+	h1 {
+		font-family: var(--font-display-condensed);
+		letter-spacing: -0.04em;
+	}
+
 	h2,
 	h3 {
 		font-family: var(--font-display);

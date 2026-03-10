@@ -667,39 +667,41 @@
 {:else}
 	<div class="mx-auto max-w-7xl px-4 py-10 sm:px-5 sm:pb-16">
 		<header
-			class="panel reveal grid gap-5 p-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(16rem,22rem)]"
+			class="reveal grid gap-4 overflow-hidden rounded-[1.8rem] border border-white/35 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.22),transparent_32%),linear-gradient(180deg,#57bfe4_0%,#57bfe4_100%)] p-5 shadow-[0_28px_62px_rgba(0,61,94,0.2)] lg:grid-cols-[minmax(0,1.5fr)_minmax(15rem,20rem)]"
 		>
-			<div class="grid gap-4">
-				<p class="eyebrow">Wolt order intelligence</p>
-				<h1
-					class="max-w-[11ch] text-[clamp(2.6rem,5vw,4.5rem)] leading-[0.95] text-ink max-lg:max-w-none"
+			<div class="grid content-start gap-3">
+				<p
+					class="text-[0.76rem] font-bold uppercase tracking-[0.14em] text-white/78"
 				>
-					Ledger of every order, fee, and craving.
+					Wolt history dashboard
+				</p>
+				<h1
+					class="text-[clamp(3rem,6vw,5.3rem)] font-black leading-[0.88] tracking-[-0.05em] text-white"
+				>
+					wolt-stats
 				</h1>
-				<p class="max-w-[60ch] text-[1.02rem] leading-7 text-ink-soft">
-					See how your delivery habits changed: where the money went, which
-					venues stuck, how fees crept up, and which dishes got more expensive
-					over time.
+				<p class="max-w-[40ch] text-sm leading-6 text-white/82">
+					Unofficial hobby dashboard. Not affiliated with Wolt.
 				</p>
 
-				<div class="flex flex-wrap gap-3">
+				<div class="flex flex-wrap gap-2.5">
 					<span
-						class="rounded-full border border-ink/9 bg-white/60 px-4 py-2 text-sm text-ink"
+						class="rounded-full border border-white/28 bg-white/16 px-3.5 py-1.5 text-sm text-white backdrop-blur-[2px]"
 						>{formatCount(freshness.totalOrders)} detailed orders loaded</span
 					>
 					{#if freshness.catalogOrders > 0}
 						<span
-							class="rounded-full border border-ink/9 bg-white/60 px-4 py-2 text-sm text-ink"
+							class="rounded-full border border-white/28 bg-white/16 px-3.5 py-1.5 text-sm text-white backdrop-blur-[2px]"
 							>{formatCount(freshness.catalogOrders)} order IDs cataloged</span
 						>
 					{/if}
 					<span
-						class="rounded-full border border-ink/9 bg-white/60 px-4 py-2 text-sm text-ink"
+						class="rounded-full border border-white/28 bg-white/16 px-3.5 py-1.5 text-sm text-white backdrop-blur-[2px]"
 						>{formatCount(freshness.syncedUsers)} user profiles loaded</span
 					>
 					{#if freshness.coverageStart && freshness.coverageEnd}
 						<span
-							class="rounded-full border border-ink/9 bg-white/60 px-4 py-2 text-sm text-ink"
+							class="rounded-full border border-white/28 bg-white/16 px-3.5 py-1.5 text-sm text-white backdrop-blur-[2px]"
 							>Detailed coverage: {formatDateLabel(freshness.coverageStart)} to {formatDateLabel(
 								freshness.coverageEnd,
 							)}</span
@@ -707,7 +709,7 @@
 					{/if}
 					{#if summary.lastOrderDate}
 						<span
-							class="rounded-full border border-ink/9 bg-white/60 px-4 py-2 text-sm text-ink"
+							class="rounded-full border border-white/28 bg-white/16 px-3.5 py-1.5 text-sm text-white backdrop-blur-[2px]"
 							>Latest order: {formatDateLabel(summary.lastOrderDate)}</span
 						>
 					{/if}
@@ -715,17 +717,17 @@
 			</div>
 
 			<aside
-				class="grid content-start gap-3 rounded-[1.4rem] border border-accent/20 bg-[radial-gradient(circle_at_top_left,rgba(0,157,224,0.18),transparent_38%),linear-gradient(165deg,rgba(255,255,255,0.98),rgba(245,251,254,0.96))] p-5 text-ink"
+				class="grid content-start gap-2.5 rounded-[1.3rem] border border-white/48 bg-[linear-gradient(165deg,rgba(255,255,255,0.96),rgba(245,251,254,0.9))] p-4 text-ink shadow-[0_18px_34px_rgba(15,37,148,0.12)]"
 			>
 				<p
 					class="text-[0.76rem] font-bold uppercase tracking-[0.14em] text-accent-deep"
 				>
 					Fresh through
 				</p>
-				<strong class="text-[1.4rem]"
+				<strong class="text-[1.25rem]"
 					>{formatDateTime(freshness.lastSyncAt)}</strong
 				>
-				<p class="leading-7 text-ink">
+				<p class="leading-6 text-ink">
 					Current focus:
 					<span class="font-semibold text-accent-deep"
 						>{formatCurrencyBreakdown(summary.totalSpend)}</span
@@ -1038,9 +1040,7 @@
 				/>
 			</section>
 
-			<section
-				class="panel reveal mt-5 grid gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center"
-			>
+			<section class="panel reveal mt-5 grid gap-4 p-5">
 				<div class="grid gap-1">
 					<p class="eyebrow">Explore modes</p>
 					<h2 class="text-3xl text-ink">
@@ -1100,14 +1100,10 @@
 				</section>
 
 				<section class="reveal mt-5 grid gap-4">
-					<div
-						class="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] lg:items-end"
-					>
-						<div>
-							<p class="eyebrow">Price signal</p>
-							<h2 class="text-3xl text-ink">Typical basket by month</h2>
-						</div>
-						<p class="leading-7 text-ink-soft">
+					<div class="grid gap-1">
+						<p class="eyebrow">Price signal</p>
+						<h2 class="text-3xl text-ink">Typical basket by month</h2>
+						<p class="max-w-[68ch] leading-7 text-ink-soft">
 							This replaces the noisy day-level average with a monthly median
 							per currency, which is a better read on what a normal order has
 							been costing you.
@@ -1133,14 +1129,10 @@
 				</section>
 
 				<section class="reveal mt-5 grid gap-4">
-					<div
-						class="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] lg:items-end"
-					>
-						<div>
-							<p class="eyebrow">Cadence signal</p>
-							<h2 class="text-3xl text-ink">Orders per month</h2>
-						</div>
-						<p class="leading-7 text-ink-soft">
+					<div class="grid gap-1">
+						<p class="eyebrow">Cadence signal</p>
+						<h2 class="text-3xl text-ink">Orders per month</h2>
+						<p class="max-w-[68ch] leading-7 text-ink-soft">
 							This separates “I’m ordering more often” from “each basket costs
 							more,” which matters a lot when the spend curve starts climbing.
 						</p>
@@ -1165,14 +1157,10 @@
 				</section>
 
 				<section class="reveal mt-5 grid gap-4">
-					<div
-						class="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] lg:items-end"
-					>
-						<div>
-							<p class="eyebrow">Monthly signal</p>
-							<h2 class="text-3xl text-ink">Spend pace by month</h2>
-						</div>
-						<p class="leading-7 text-ink-soft">
+					<div class="grid gap-1">
+						<p class="eyebrow">Monthly signal</p>
+						<h2 class="text-3xl text-ink">Spend pace by month</h2>
+						<p class="max-w-[68ch] leading-7 text-ink-soft">
 							This shows how your spend accelerates or cools down, again split
 							by currency so the y-axis stays honest.
 						</p>
@@ -1197,14 +1185,10 @@
 				</section>
 
 				<section class="reveal mt-5 grid gap-4">
-					<div
-						class="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(18rem,0.85fr)] lg:items-end"
-					>
-						<div>
-							<p class="eyebrow">Fee signal</p>
-							<h2 class="text-3xl text-ink">How fee pressure changed</h2>
-						</div>
-						<p class="leading-7 text-ink-soft">
+					<div class="grid gap-1">
+						<p class="eyebrow">Fee signal</p>
+						<h2 class="text-3xl text-ink">How fee pressure changed</h2>
+						<p class="max-w-[68ch] leading-7 text-ink-soft">
 							The median line tracks the fee share of a typical order each
 							month. The average line stays useful for the blended load, but the
 							median shows the cleaner per-order trend.
