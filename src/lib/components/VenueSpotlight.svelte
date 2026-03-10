@@ -34,7 +34,12 @@
 		productselect: ProductSelectDetail;
 	}>();
 
-	const palette = ['#009de0', '#1fc70a', '#fc6200', '#0f2594'];
+	const palette = [
+		'var(--chart-accent-1)',
+		'var(--chart-accent-2)',
+		'var(--chart-accent-3)',
+		'var(--chart-accent-5)',
+	];
 
 	$: medianGroups = groupSeriesByKey(monthlyMedian);
 	$: orderGroups = groupSeriesByKey(monthlyOrders);

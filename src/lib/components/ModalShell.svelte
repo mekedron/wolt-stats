@@ -37,7 +37,8 @@
 <svelte:window on:keydown={handleKeydown} />
 
 <div
-	class="fixed inset-0 z-[90] bg-ink/42 px-3 py-4 backdrop-blur-[6px] sm:px-5 sm:py-6"
+	class="fixed inset-0 z-[90] px-3 py-4 backdrop-blur-[6px] sm:px-5 sm:py-6"
+	style="background:var(--modal-backdrop);"
 >
 	<button
 		aria-label="Close detail view"
@@ -56,7 +57,7 @@
 	>
 		<button
 			aria-label="Close detail view"
-			class="absolute right-4 top-4 z-10 inline-flex size-11 items-center justify-center rounded-full border border-white/42 bg-white/90 text-2xl leading-none text-ink shadow-[0_18px_40px_-24px_rgba(0,0,0,0.55)] transition hover:-translate-y-0.5 hover:bg-white"
+			class="absolute right-4 top-4 z-10 inline-flex size-11 items-center justify-center rounded-full border border-ink/12 bg-white/90 text-2xl leading-none text-ink shadow-[0_18px_40px_-24px_rgba(0,0,0,0.55)] transition hover:-translate-y-0.5 hover:bg-white"
 			type="button"
 			on:click={requestClose}
 		>

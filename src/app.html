@@ -3,17 +3,40 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="theme-color" content="#009DE0" />
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link
-			rel="preconnect"
-			href="https://fonts.gstatic.com"
-			crossorigin="anonymous"
-		/>
-		<link
-			href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
-			rel="stylesheet"
-		/>
+		<meta name="theme-color" content="#57BFE4" />
+		<script>
+			(() => {
+				const storageKey = 'wolt-stats-theme';
+				const preference = localStorage.getItem(storageKey);
+				const normalized =
+					preference === 'light' ||
+					preference === 'dark' ||
+					preference === 'system'
+						? preference
+						: 'system';
+				const prefersDark =
+					window.matchMedia &&
+					window.matchMedia('(prefers-color-scheme: dark)').matches;
+				const applied =
+					normalized === 'system'
+						? prefersDark
+							? 'dark'
+							: 'light'
+						: normalized;
+
+				document.documentElement.dataset.theme = applied;
+				document.documentElement.dataset.themePreference = normalized;
+				document.documentElement.style.colorScheme = applied;
+
+				const meta = document.querySelector('meta[name="theme-color"]');
+				if (meta) {
+					meta.setAttribute(
+						'content',
+						applied === 'dark' ? '#00131B' : '#57BFE4',
+					);
+				}
+			})();
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

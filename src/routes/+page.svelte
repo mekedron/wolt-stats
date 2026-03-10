@@ -67,6 +67,14 @@
 		groupSeriesByKey,
 		shiftDate,
 	} from '$lib/utils/format';
+	import {
+		THEME_STORAGE_KEY,
+		normalizeThemePreference,
+		resolveAppliedTheme,
+		resolveThemeColor,
+		type AppliedTheme,
+		type ThemePreference,
+	} from '$lib/theme';
 
 	const emptySummary: SummaryMetrics = {
 		activeCountries: 0,
@@ -171,28 +179,61 @@
 	let venueSpotlightName: string | null = null;
 	let venueSpotlightSource = '';
 	let activeView: DashboardView = 'overview';
+	let themePreference: ThemePreference = 'system';
+	let appliedTheme: AppliedTheme = 'light';
 
-	const palette = ['#009de0', '#1fc70a', '#fc6200', '#202125', '#0f2594'];
+	const palette = [
+		'var(--chart-accent-1)',
+		'var(--chart-accent-2)',
+		'var(--chart-accent-3)',
+		'var(--chart-accent-4)',
+		'var(--chart-accent-5)',
+	];
+	const themeOptions: Array<{ label: string; value: ThemePreference }> = [
+		{ label: 'System', value: 'system' },
+		{ label: 'Light', value: 'light' },
+		{ label: 'Dark', value: 'dark' },
+	];
 
-	onMount(async () => {
-		try {
-			database = await loadDatabase();
-			freshness = getFreshness(database);
-			metadata = getFilterMetadata(database, 'all');
-			filters = {
-				...filters,
-				endDate: metadata.maxDate,
-				startDate: metadata.minDate,
-			};
-			refreshDashboard();
-		} catch (exception) {
-			error =
-				exception instanceof Error
-					? exception.message
-					: 'Could not load the dashboard database.';
-		} finally {
-			loading = false;
-		}
+	onMount(() => {
+		const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+		const handleSystemThemeChange = () => {
+			if (themePreference === 'system') {
+				applyThemePreference(themePreference, mediaQuery);
+			}
+		};
+
+		applyThemePreference(
+			normalizeThemePreference(localStorage.getItem(THEME_STORAGE_KEY)),
+			mediaQuery,
+		);
+
+		mediaQuery.addEventListener('change', handleSystemThemeChange);
+
+		void (async () => {
+			try {
+				database = await loadDatabase();
+				freshness = getFreshness(database);
+				metadata = getFilterMetadata(database, 'all');
+				filters = {
+					...filters,
+					endDate: metadata.maxDate,
+					startDate: metadata.minDate,
+				};
+				refreshDashboard();
+			} catch (exception) {
+				error =
+					exception instanceof Error
+						? exception.message
+						: 'Could not load the dashboard database.';
+			} finally {
+				loading = false;
+			}
+		})();
+
+		return () => {
+			mediaQuery.removeEventListener('change', handleSystemThemeChange);
+		};
 	});
 
 	$: monthlyMedianGroups = groupSeriesByKey(monthlyMedian);
@@ -218,6 +259,10 @@
 	$: trendPulseItems = toTrendPulseItems(trendPulse);
 	$: topVenueItems = toVenueRankItems(topVenues);
 	$: topItemRows = toItemRankItems(topItems);
+	$: themeStatusLabel =
+		themePreference === 'system'
+			? `System · ${capitalizeTheme(appliedTheme)}`
+			: capitalizeTheme(appliedTheme);
 
 	function refreshDashboard({ resetOrderLedger = false } = {}) {
 		if (!database) {
@@ -493,6 +538,36 @@
 		return palette[index % palette.length];
 	}
 
+	function capitalizeTheme(value: string) {
+		return value.charAt(0).toUpperCase() + value.slice(1);
+	}
+
+	function applyThemePreference(
+		nextPreference: ThemePreference,
+		mediaQuery?: MediaQueryList,
+	) {
+		themePreference = nextPreference;
+		appliedTheme = resolveAppliedTheme(
+			nextPreference,
+			mediaQuery?.matches ??
+				window.matchMedia('(prefers-color-scheme: dark)').matches,
+		);
+
+		const root = document.documentElement;
+		root.dataset.theme = appliedTheme;
+		root.dataset.themePreference = nextPreference;
+		root.style.colorScheme = appliedTheme;
+
+		const meta = document.querySelector('meta[name="theme-color"]');
+		meta?.setAttribute('content', resolveThemeColor(appliedTheme));
+
+		if (nextPreference === 'system') {
+			localStorage.removeItem(THEME_STORAGE_KEY);
+		} else {
+			localStorage.setItem(THEME_STORAGE_KEY, nextPreference);
+		}
+	}
+
 	function handleProductSelect(event: CustomEvent<ProductSelectDetail>) {
 		productFocus = {
 			itemName: event.detail.itemName,
@@ -717,8 +792,41 @@
 			</div>
 
 			<aside
-				class="grid content-start gap-2.5 rounded-[1.3rem] border border-white/48 bg-[linear-gradient(165deg,rgba(255,255,255,0.96),rgba(245,251,254,0.9))] p-4 text-ink shadow-[0_18px_34px_rgba(15,37,148,0.12)]"
+				class="grid content-start gap-2.5 rounded-[1.3rem] border p-4 text-ink"
+				style={`background:var(--hero-aside-background);border-color:var(--hero-aside-border);box-shadow:var(--hero-aside-shadow);`}
 			>
+				<div
+					class="grid gap-2 rounded-[1rem] border border-ink/10 bg-white/78 p-3"
+				>
+					<div class="flex items-center justify-between gap-3">
+						<p
+							class="text-[0.76rem] font-bold uppercase tracking-[0.14em] text-accent-deep"
+						>
+							Theme
+						</p>
+						<span class="text-xs text-ink-soft">{themeStatusLabel}</span>
+					</div>
+
+					<div class="grid grid-cols-3 gap-2">
+						{#each themeOptions as option}
+							<button
+								type="button"
+								aria-pressed={themePreference === option.value}
+								class={`rounded-full px-3 py-2 text-sm font-semibold transition ${
+									themePreference === option.value
+										? 'border border-accent/20 bg-accent text-white shadow-sm'
+										: 'border border-ink/12 bg-white/78 text-ink hover:border-accent/28'
+								}`}
+								on:click={() => applyThemePreference(option.value)}
+							>
+								{option.label}
+							</button>
+						{/each}
+					</div>
+				</div>
+
+				<div class="h-px bg-ink/8"></div>
+
 				<p
 					class="text-[0.76rem] font-bold uppercase tracking-[0.14em] text-accent-deep"
 				>
@@ -1197,7 +1305,7 @@
 
 					<div class="grid gap-4 lg:grid-cols-2">
 						<LineChart
-							accent="#009de0"
+							accent="var(--chart-accent-1)"
 							data={medianFeeSeries}
 							format="percent"
 							granularity="month"
@@ -1206,7 +1314,7 @@
 						/>
 
 						<LineChart
-							accent="#0f2594"
+							accent="var(--chart-accent-5)"
 							data={feeSeries}
 							format="percent"
 							granularity="month"
@@ -1218,7 +1326,7 @@
 
 				<section class="reveal mt-5">
 					<BarChart
-						accent="#1fc70a"
+						accent="var(--chart-accent-2)"
 						data={countryChartData}
 						subtitle="Order count by venue country."
 						title="Country mix"
@@ -1229,6 +1337,7 @@
 					<HeatmapChart
 						data={heatmap}
 						subtitle="Local order time. Fast way to spot weekday routines and weekend drift."
+						theme={appliedTheme}
 						title="When you order"
 					/>
 				</section>

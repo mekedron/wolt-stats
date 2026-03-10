@@ -9,7 +9,7 @@
 		formatPercent,
 	} from '$lib/utils/format';
 
-	export let accent = '#009de0';
+	export let accent = 'var(--chart-accent-1)';
 	export let currency = 'EUR';
 	export let data: Array<{ label: string; value: number }> = [];
 	export let format: 'count' | 'currency' | 'percent' = 'count';
@@ -206,13 +206,13 @@
 						x2={width - margin.right}
 						y1={yScale(tick)}
 						y2={yScale(tick)}
-						stroke="rgba(32, 33, 37, 0.1)"
+						stroke="var(--chart-grid)"
 						stroke-dasharray="3 6"
 					/>
 					<text
 						x={margin.left - 10}
 						y={yScale(tick) + 4}
-						fill="rgba(32, 33, 37, 0.76)"
+						fill="var(--chart-axis)"
 						font-size="11"
 						text-anchor="end"
 					>
@@ -260,7 +260,7 @@
 					<text
 						x={xScale(tick)}
 						y={height - 10}
-						fill="rgba(32, 33, 37, 0.78)"
+						fill="var(--chart-axis)"
 						font-size="11"
 						text-anchor="middle"
 					>
