@@ -75,10 +75,15 @@ Example:
 
 What the sync does:
 
-1. Pages through Wolt order history and builds a deduplicated `order_catalog`.
-2. Verifies the catalog baseline, if one was provided.
-3. Fetches detailed order payloads only after the catalog phase succeeds.
-4. Upserts details into SQLite so reruns append safely and stay deduplicated.
+1. By default, checks only the newest Wolt history pages after the latest cataloged order already stored in the local database.
+2. Builds or updates a deduplicated `order_catalog`.
+3. Verifies the catalog baseline, if one was provided.
+4. Fetches missing detailed order payloads only after the catalog phase succeeds.
+5. Upserts details into SQLite so reruns append safely and stay deduplicated.
+
+Use `--full` only when you want to force a complete history crawl again.
+
+When a baseline is clearly incomplete, for example `--expectedOrderCount 870` but the local catalog is below that, the sync automatically falls back to a full catalog crawl so the database can recover.
 
 Useful variants:
 
@@ -93,6 +98,18 @@ You can also use the npm wrapper:
 
 ```bash
 npm run db:sync -- --userEmail you@example.com --expectedOrderCount 870
+```
+
+On a cron-style setup, the normal run should stay cheap:
+
+```bash
+./scripts/sync-wolt-history.sh --userEmail you@example.com --expectedOrderCount 870
+```
+
+The first full sync or any explicit recovery run should use:
+
+```bash
+./scripts/sync-wolt-history.sh --userEmail you@example.com --expectedOrderCount 870 --full
 ```
 
 ## Run Locally

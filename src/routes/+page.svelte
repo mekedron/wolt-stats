@@ -592,7 +592,7 @@
 	<title>Wolt Ledger</title>
 	<meta
 		name="description"
-		content="Static Svelte + sql.js dashboard for Wolt order history, with multi-user, multi-country, and multi-currency filters."
+		content="Track fee pressure, venue habits, repeat dishes, and price drift across your Wolt order history."
 	/>
 </svelte:head>
 
@@ -604,8 +604,7 @@
 			<p class="eyebrow">Loading</p>
 			<h1 class="text-4xl text-ink">Opening the order ledger.</h1>
 			<p class="text-base leading-7 text-ink-soft">
-				Booting `sql.js`, loading the synced SQLite file, and preparing the
-				dashboard.
+				Loading the synced order history and preparing the dashboard.
 			</p>
 		</div>
 	</div>
@@ -616,7 +615,7 @@
 		<div class="panel grid max-w-2xl gap-3 border-accent/30 p-7">
 			<p class="eyebrow">Missing data</p>
 			<h1 class="text-4xl text-ink">
-				The dashboard can’t see a synced SQLite file yet.
+				The dashboard can’t see a synced history file yet.
 			</h1>
 			<p class="text-base leading-7 text-ink-soft">{error}</p>
 			<code
@@ -639,9 +638,9 @@
 					Ledger of every order, fee, and craving.
 				</h1>
 				<p class="max-w-[60ch] text-[1.02rem] leading-7 text-ink-soft">
-					Static SvelteKit on top, browser-side SQLite underneath. The dashboard
-					stays safe for GitHub Pages while still letting you slice by user,
-					country, currency, and time window.
+					See how your delivery habits changed: where the money went, which
+					venues stuck, how fees crept up, and which dishes got more expensive
+					over time.
 				</p>
 
 				<div class="flex flex-wrap gap-3">
@@ -723,8 +722,8 @@
 			<div class="grid gap-1">
 				<h2 class="text-3xl text-ink">Slice the history</h2>
 				<p class="leading-7 text-ink-soft">
-					Every view below re-queries the SQLite database in the browser. No
-					server round-trips.
+					Filter the ledger by user, place, venue, currency, and time window to
+					isolate the pattern you actually want to inspect.
 				</p>
 			</div>
 

@@ -28,6 +28,11 @@ import {
 	runWoltJson,
 	sleep,
 } from './lib/wolt-sync-runtime.mjs';
+import {
+	formatCatalogStopReason,
+	getCatalogStopDecision,
+	resolveCatalogScanMode,
+} from './lib/wolt-sync-catalog.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = resolve(__dirname, '..');
@@ -66,7 +71,8 @@ Options:
   --locale <locale>           Optional Wolt locale override, for example en-FI.
   --expectedOrderCount <n>    Minimum unique order IDs required before detail sync starts.
                               Optional, but recommended for reliable completeness checks.
-  --full                      Re-fetch details for every cataloged order.
+  --full                      Force a full catalog crawl and re-fetch all order details.
+                              Default mode is incremental after the initial history baseline exists.
   --help, -h                  Show this help.
 `);
 	process.exit(0);
@@ -115,6 +121,27 @@ let detailsQueued;
 let detailsFetched;
 let insertedOrders;
 let updatedOrders;
+const knownCatalogCount = getCatalogCount(db, userId);
+const newestKnownCatalogPaymentTimeTs = getNewestCatalogPaymentTimeTs(
+	db,
+	userId,
+);
+const catalogScanMode = resolveCatalogScanMode({
+	expectedOrderCount,
+	forceFull,
+	knownCatalogCount,
+	newestKnownPaymentTimeTs: newestKnownCatalogPaymentTimeTs,
+});
+const knownCatalogPurchaseIds =
+	catalogScanMode === 'incremental'
+		? new Set(
+				queryAll(
+					db,
+					'SELECT purchase_id FROM order_catalog WHERE user_id = ?',
+					[userId],
+				).map((row) => String(row.purchase_id ?? '')),
+			)
+		: new Set();
 
 try {
 	const authState = await runWoltJson({
@@ -137,7 +164,11 @@ try {
 	});
 	writeDatabaseSnapshot(dbPath, db);
 
-	const catalogResult = await syncCatalogPhase();
+	const catalogResult = await syncCatalogPhase({
+		knownCatalogPurchaseIds,
+		mode: catalogScanMode,
+		newestKnownPaymentTimeTs: newestKnownCatalogPaymentTimeTs,
+	});
 	pagesFetched = catalogResult.pagesFetched;
 	ordersScanned = catalogResult.ordersScanned;
 
@@ -169,7 +200,7 @@ try {
 		ordersScanned,
 		pagesFetched,
 		profileName,
-		reachedHistoryEnd: true,
+		reachedHistoryEnd: catalogResult.reachedHistoryEnd,
 		startedAt,
 		updatedOrders,
 		userId,
@@ -184,6 +215,7 @@ try {
 			`Synced Wolt history for ${userEmail}`,
 			`  profile: ${profileName}`,
 			`  db: ${dbPath}`,
+			`  catalog mode: ${catalogScanMode}`,
 			`  catalog pages fetched: ${pagesFetched}`,
 			`  order summaries scanned: ${ordersScanned}`,
 			`  unique order IDs: ${catalogCount}`,
@@ -193,6 +225,7 @@ try {
 			`  inserted: ${insertedOrders}`,
 			`  updated: ${updatedOrders}`,
 			`  expected minimum: ${expectedOrderCount ?? 'none'}`,
+			`  catalog stop reason: ${formatCatalogStopReason(catalogResult.stopReason)}`,
 			`  full backfill complete: ${isFullySynced(catalogCount, detailCount, expectedOrderCount) ? 'yes' : 'no'}`,
 		].join('\n'),
 	);
@@ -200,12 +233,18 @@ try {
 	db.close();
 }
 
-async function syncCatalogPhase() {
+async function syncCatalogPhase({
+	knownCatalogPurchaseIds,
+	mode,
+	newestKnownPaymentTimeTs,
+}) {
 	let nextPageToken;
 	let pageOrdinal = 1;
 	let pagesFetchedForRun = 0;
 	let ordersScannedForRun = 0;
+	let stopReason = null;
 	const seenPageTokens = new Set();
+	const incremental = mode === 'incremental';
 
 	while (true) {
 		const listArgs = ['profile', 'orders', 'list', '--limit', String(pageSize)];
@@ -228,7 +267,7 @@ async function syncCatalogPhase() {
 		pagesFetchedForRun += 1;
 		ordersScannedForRun += summaries.length;
 		console.log(
-			`Catalog page ${pageOrdinal}: ${summaries.length} order summaries`,
+			`Catalog page ${pageOrdinal}: ${summaries.length} order summaries${incremental ? ' (incremental)' : ''}`,
 		);
 
 		db.run('BEGIN');
@@ -266,6 +305,17 @@ async function syncCatalogPhase() {
 
 		const pageNextToken =
 			typeof page?.next_page_token === 'string' ? page.next_page_token : null;
+		const stopDecision = incremental
+			? getCatalogStopDecision({
+					knownPurchaseIds: knownCatalogPurchaseIds,
+					newestKnownPaymentTimeTs,
+					summaries,
+				})
+			: { reason: null, shouldStopAfterPage: false };
+		if (stopDecision.shouldStopAfterPage) {
+			stopReason = stopDecision.reason;
+			break;
+		}
 		if (!pageNextToken) {
 			break;
 		}
@@ -281,12 +331,14 @@ async function syncCatalogPhase() {
 
 	const uniqueOrders = getCatalogCount(db, userId);
 	console.log(
-		`Catalog phase complete: ${uniqueOrders} unique order IDs discovered.`,
+		`Catalog phase complete: ${uniqueOrders} unique order IDs discovered.${incremental ? ` Incremental stop: ${formatCatalogStopReason(stopReason)}.` : ''}`,
 	);
 
 	return {
 		ordersScanned: ordersScannedForRun,
 		pagesFetched: pagesFetchedForRun,
+		reachedHistoryEnd: stopReason === null,
+		stopReason,
 		uniqueOrders,
 	};
 }
