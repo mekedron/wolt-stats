@@ -263,6 +263,12 @@
 		themePreference === 'system'
 			? `System · ${capitalizeTheme(appliedTheme)}`
 			: capitalizeTheme(appliedTheme);
+	$: catalogStatusLabel =
+		freshness.catalogOrders > 0
+			? freshness.missingDetails > 0
+				? `Cataloged orders: ${formatCount(freshness.catalogOrders)} unique IDs, including ${formatCount(freshness.missingDetails)} without detailed payloads yet.`
+				: `Cataloged orders: ${formatCount(freshness.catalogOrders)} unique IDs.`
+			: '';
 
 	function refreshDashboard({ resetOrderLedger = false } = {}) {
 		if (!database) {
@@ -841,10 +847,8 @@
 						>{formatCurrencyBreakdown(summary.totalSpend)}</span
 					>
 				</p>
-				{#if freshness.expectedOrders}
-					<p class="text-sm leading-6 text-ink-soft">
-						Catalog baseline: {formatCount(freshness.expectedOrders)} unique orders.
-					</p>
+				{#if freshness.catalogOrders > 0}
+					<p class="text-sm leading-6 text-ink-soft">{catalogStatusLabel}</p>
 				{/if}
 				{#if freshness.catalogShortfall > 0}
 					<p class="text-sm leading-6 text-ink-soft">
