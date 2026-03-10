@@ -748,11 +748,11 @@
 {:else}
 	<div class="mx-auto max-w-7xl px-4 py-10 sm:px-5 sm:pb-16">
 		<header
-			class="reveal grid gap-4 overflow-hidden rounded-[1.8rem] border border-white/35 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.22),transparent_32%),linear-gradient(180deg,#57bfe4_0%,#57bfe4_100%)] p-5 shadow-[0_28px_62px_rgba(0,61,94,0.2)] lg:grid-cols-[minmax(0,1.5fr)_minmax(15rem,20rem)]"
+			class="reveal grid gap-4 overflow-hidden rounded-[1.8rem] border border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(87,191,228,0.18),transparent_34%),radial-gradient(circle_at_82%_18%,rgba(143,183,255,0.15),transparent_28%),linear-gradient(160deg,#03090f_0%,#07151f_45%,#0d2230_100%)] p-5 shadow-[0_30px_72px_rgba(0,0,0,0.34)] lg:grid-cols-[minmax(0,1.5fr)_minmax(15rem,20rem)]"
 		>
 			<div class="grid content-start gap-3">
 				<p
-					class="text-[0.76rem] font-bold uppercase tracking-[0.14em] text-white/78"
+					class="text-[0.76rem] font-bold uppercase tracking-[0.14em] text-white/64"
 				>
 					Wolt history dashboard
 				</p>
@@ -761,28 +761,28 @@
 				>
 					wolt-stats
 				</h1>
-				<p class="max-w-[40ch] text-sm leading-6 text-white/82">
+				<p class="max-w-[40ch] text-sm leading-6 text-white/78">
 					Unofficial hobby dashboard. Not affiliated with Wolt.
 				</p>
 
 				<div class="flex flex-wrap gap-2.5">
 					<span
-						class="rounded-full border border-white/28 bg-white/16 px-3.5 py-1.5 text-sm text-white backdrop-blur-[2px]"
+						class="rounded-full border border-white/14 bg-white/[0.08] px-3.5 py-1.5 text-sm text-white/92 backdrop-blur-[2px]"
 						>{formatCount(freshness.totalOrders)} detailed orders loaded</span
 					>
 					{#if freshness.catalogOrders > 0}
 						<span
-							class="rounded-full border border-white/28 bg-white/16 px-3.5 py-1.5 text-sm text-white backdrop-blur-[2px]"
+							class="rounded-full border border-white/14 bg-white/[0.08] px-3.5 py-1.5 text-sm text-white/92 backdrop-blur-[2px]"
 							>{formatCount(freshness.catalogOrders)} order IDs cataloged</span
 						>
 					{/if}
 					<span
-						class="rounded-full border border-white/28 bg-white/16 px-3.5 py-1.5 text-sm text-white backdrop-blur-[2px]"
+						class="rounded-full border border-white/14 bg-white/[0.08] px-3.5 py-1.5 text-sm text-white/92 backdrop-blur-[2px]"
 						>{formatCount(freshness.syncedUsers)} user profiles loaded</span
 					>
 					{#if freshness.coverageStart && freshness.coverageEnd}
 						<span
-							class="rounded-full border border-white/28 bg-white/16 px-3.5 py-1.5 text-sm text-white backdrop-blur-[2px]"
+							class="rounded-full border border-white/14 bg-white/[0.08] px-3.5 py-1.5 text-sm text-white/92 backdrop-blur-[2px]"
 							>Detailed coverage: {formatDateLabel(freshness.coverageStart)} to {formatDateLabel(
 								freshness.coverageEnd,
 							)}</span
@@ -790,7 +790,7 @@
 					{/if}
 					{#if summary.lastOrderDate}
 						<span
-							class="rounded-full border border-white/28 bg-white/16 px-3.5 py-1.5 text-sm text-white backdrop-blur-[2px]"
+							class="rounded-full border border-white/14 bg-white/[0.08] px-3.5 py-1.5 text-sm text-white/92 backdrop-blur-[2px]"
 							>Latest order: {formatDateLabel(summary.lastOrderDate)}</span
 						>
 					{/if}
@@ -798,19 +798,18 @@
 			</div>
 
 			<aside
-				class="grid content-start gap-2.5 rounded-[1.3rem] border p-4 text-ink"
-				style={`background:var(--hero-aside-background);border-color:var(--hero-aside-border);box-shadow:var(--hero-aside-shadow);`}
+				class="grid content-start gap-2.5 rounded-[1.3rem] border border-white/12 bg-[linear-gradient(165deg,rgba(255,255,255,0.08),rgba(255,255,255,0.04))] p-4 text-white shadow-[0_20px_38px_rgba(0,0,0,0.26)]"
 			>
 				<div
-					class="grid gap-2 rounded-[1rem] border border-ink/10 bg-white/78 p-3"
+					class="grid gap-2 rounded-[1rem] border border-white/10 bg-black/18 p-3"
 				>
 					<div class="flex items-center justify-between gap-3">
 						<p
-							class="text-[0.76rem] font-bold uppercase tracking-[0.14em] text-accent-deep"
+							class="text-[0.76rem] font-bold uppercase tracking-[0.14em] text-[#8edcff]"
 						>
 							Theme
 						</p>
-						<span class="text-xs text-ink-soft">{themeStatusLabel}</span>
+						<span class="text-xs text-white/62">{themeStatusLabel}</span>
 					</div>
 
 					<div class="grid grid-cols-3 gap-2">
@@ -820,8 +819,8 @@
 								aria-pressed={themePreference === option.value}
 								class={`rounded-full px-3 py-2 text-sm font-semibold transition ${
 									themePreference === option.value
-										? 'border border-accent/20 bg-accent text-white shadow-sm'
-										: 'border border-ink/12 bg-white/78 text-ink hover:border-accent/28'
+										? 'border border-accent/20 bg-accent text-white shadow-[0_10px_24px_rgba(0,157,224,0.28)]'
+										: 'border border-white/12 bg-white/[0.04] text-white/92 hover:border-[#57bfe4]/50 hover:bg-white/[0.07]'
 								}`}
 								on:click={() => applyThemePreference(option.value)}
 							>
@@ -831,40 +830,40 @@
 					</div>
 				</div>
 
-				<div class="h-px bg-ink/8"></div>
+				<div class="h-px bg-white/10"></div>
 
 				<p
-					class="text-[0.76rem] font-bold uppercase tracking-[0.14em] text-accent-deep"
+					class="text-[0.76rem] font-bold uppercase tracking-[0.14em] text-[#8edcff]"
 				>
 					Fresh through
 				</p>
 				<strong class="text-[1.25rem]"
 					>{formatDateTime(freshness.lastSyncAt)}</strong
 				>
-				<p class="leading-6 text-ink">
+				<p class="leading-6 text-white/88">
 					Current focus:
-					<span class="font-semibold text-accent-deep"
+					<span class="font-semibold text-[#8edcff]"
 						>{formatCurrencyBreakdown(summary.totalSpend)}</span
 					>
 				</p>
 				{#if freshness.catalogOrders > 0}
-					<p class="text-sm leading-6 text-ink-soft">{catalogStatusLabel}</p>
+					<p class="text-sm leading-6 text-white/72">{catalogStatusLabel}</p>
 				{/if}
 				{#if freshness.catalogShortfall > 0}
-					<p class="text-sm leading-6 text-ink-soft">
+					<p class="text-sm leading-6 text-white/72">
 						The catalog is still short by {formatCount(
 							freshness.catalogShortfall,
 						)} order IDs, so detail sync is paused until the full history scan catches
 						up.
 					</p>
 				{:else if freshness.missingDetails > 0}
-					<p class="text-sm leading-6 text-ink-soft">
+					<p class="text-sm leading-6 text-white/72">
 						Detail sync is still filling {formatCount(freshness.missingDetails)} cataloged
 						orders. Older countries and currencies can stay hidden until those details
 						land.
 					</p>
 				{:else if freshness.catalogOrders > 0}
-					<p class="text-sm leading-6 text-ink-soft">
+					<p class="text-sm leading-6 text-white/72">
 						Catalog and detail tables are aligned.
 					</p>
 				{/if}

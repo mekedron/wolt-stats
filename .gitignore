@@ -8,6 +8,7 @@ node_modules
 /.svelte-kit
 /build
 /static/data/*.sqlite
+!/static/data/wolt-history-demo.sqlite
 /static/data/*.sqlite-*
 /static/data/*.db
 /static/data/*.db-*

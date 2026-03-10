@@ -7,7 +7,10 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"build:pages": "BASE_PATH=/wolt-stats vite build",
+		"build:demo": "node ./scripts/build-demo-site.mjs",
+		"build:pages:demo": "node ./scripts/build-demo-site.mjs --pages",
 		"db:sync": "./scripts/sync-wolt-history.sh",
+		"db:demo": "node ./scripts/generate-demo-db.mjs",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"lint": "eslint \"src/**/*.{ts,js}\" \"scripts/**/*.{ts,js,mjs}\" \"*.config.{js,ts}\"",
@@ -20,6 +23,7 @@
 		"validate": "npm run format:check && npm run lint && npm run test && npm run check && npm run build"
 	},
 	"devDependencies": {
+		"@faker-js/faker": "^10.3.0",
 		"@eslint/js": "^10.0.1",
 		"@sveltejs/adapter-static": "^3.0.10",
 		"@sveltejs/kit": "^2.50.2",
