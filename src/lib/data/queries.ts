@@ -588,6 +588,14 @@ function buildOrderScope(filters: DashboardFilters) {
 	const conditions: string[] = [];
 	const params: Array<string> = [];
 
+	// Default scope: delivered orders only. Wolt's order history persists
+	// payment-failure and venue-rejection attempts alongside completed
+	// orders (a failed-payment retry creates two purchase IDs at the same
+	// venue), and summing all of them double-counts spend and produces
+	// duplicate entries in the venue leaderboard. Keep this in lock-step
+	// with the same default in explore.ts.
+	conditions.push("status = 'delivered'");
+
 	if (filters.userId !== 'all') {
 		conditions.push('user_id = ?');
 		params.push(filters.userId);
@@ -655,7 +663,7 @@ function replaceOrdersAlias(whereClause: string, alias: string) {
 	}
 
 	return whereClause.replaceAll(
-		/\b(user_id|venue_country|currency|order_local_date|delivery_city|venue_id|venue_product_line|order_local_weekday|order_local_hour)\b/g,
+		/\b(user_id|venue_country|currency|order_local_date|delivery_city|venue_id|venue_product_line|order_local_weekday|order_local_hour|status)\b/g,
 		`${alias}.$1`,
 	);
 }

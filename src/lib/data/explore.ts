@@ -613,6 +613,15 @@ function buildOrderScope(filters: DashboardFilters) {
 	const conditions: string[] = [];
 	const params: Array<string> = [];
 
+	// Wolt's order history includes payment-failure and venue-rejection
+	// records alongside successful deliveries. A failed payment retry
+	// creates two purchase IDs at the same venue (one
+	// "deferred_payment_failed", one "delivered"), which double-counts
+	// spend and makes a venue appear twice in the leaderboard. Default
+	// every dashboard panel to delivered orders only so the headline
+	// metrics match what the user actually paid for.
+	conditions.push("status = 'delivered'");
+
 	if (filters.userId !== 'all') {
 		conditions.push('user_id = ?');
 		params.push(filters.userId);
@@ -680,7 +689,7 @@ function replaceOrdersAlias(whereClause: string, alias: string) {
 	}
 
 	return whereClause.replaceAll(
-		/\b(user_id|venue_country|currency|order_local_date|delivery_city|venue_id|venue_product_line|order_local_weekday|order_local_hour)\b/g,
+		/\b(user_id|venue_country|currency|order_local_date|delivery_city|venue_id|venue_product_line|order_local_weekday|order_local_hour|status)\b/g,
 		`${alias}.$1`,
 	);
 }

@@ -37,7 +37,9 @@ const version = args.values.version ?? process.env.GITHUB_REF_NAME ?? 'dev';
 let commit = args.values.commit ?? process.env.GITHUB_SHA;
 if (!commit) {
 	try {
-		commit = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
+		commit = execSync('git rev-parse --short HEAD', {
+			encoding: 'utf8',
+		}).trim();
 	} catch {
 		commit = 'unknown';
 	}
