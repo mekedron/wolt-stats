@@ -1,0 +1,83 @@
+name: Release bundle
+
+on:
+  push:
+    tags:
+      - v*.*.*
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag name to attach the bundle to (must already exist)
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-bundle-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve release tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "name=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build root-relative bundle
+        env:
+          NODE_ENV: production
+        run: npm run build:release
+
+      - name: Inject manifest.json
+        env:
+          GITHUB_REF_NAME: ${{ steps.tag.outputs.name }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: node scripts/inject-manifest.mjs --dir build-release
+
+      - name: Pack bundle tarball
+        id: pack
+        run: |
+          tag="${{ steps.tag.outputs.name }}"
+          asset="wolt-stats-bundle-${tag}.tar.gz"
+          tar -czf "${asset}" -C build-release .
+          shasum -a 256 "${asset}" | awk '{ print $1 }' > "${asset}.sha256"
+          {
+            echo "asset=${asset}"
+            echo "checksum=${asset}.sha256"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Upload bundle to GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          tag="${{ steps.tag.outputs.name }}"
+          asset="${{ steps.pack.outputs.asset }}"
+          checksum="${{ steps.pack.outputs.checksum }}"
+          if gh release view "${tag}" >/dev/null 2>&1; then
+            gh release upload "${tag}" "${asset}" "${checksum}" --clobber
+          else
+            gh release create "${tag}" "${asset}" "${checksum}" \
+              --title "${tag}" \
+              --generate-notes
+          fi

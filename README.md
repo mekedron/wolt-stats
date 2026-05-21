@@ -43,6 +43,14 @@ npm install
 
 ## Sync Your Data
 
+> Tip: if you just want to view the dashboard and you already have
+> [`wolt-cli`](https://github.com/mekedron/wolt-cli) installed, run
+> `wolt stats` instead. It downloads a pre-built bundle from this repo's
+> GitHub Releases, syncs your history into SQLite in Go (no Node.js
+> needed at runtime), serves the dashboard at `http://127.0.0.1:5173`,
+> and opens the browser. The Node sync below is the reference
+> implementation kept for development on this repo.
+
 The sync writes to `static/data/wolt-history.sqlite`.
 
 ```bash
