@@ -53,14 +53,14 @@ jobs:
         env:
           GITHUB_REF_NAME: ${{ steps.tag.outputs.name }}
           GITHUB_SHA: ${{ github.sha }}
-        run: node scripts/inject-manifest.mjs --dir build-release
+        run: node scripts/inject-manifest.mjs --dir build
 
       - name: Pack bundle tarball
         id: pack
         run: |
           tag="${{ steps.tag.outputs.name }}"
           asset="wolt-stats-bundle-${tag}.tar.gz"
-          tar -czf "${asset}" -C build-release .
+          tar -czf "${asset}" -C build .
           shasum -a 256 "${asset}" | awk '{ print $1 }' > "${asset}.sha256"
           {
             echo "asset=${asset}"

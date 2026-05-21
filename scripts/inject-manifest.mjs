@@ -9,7 +9,7 @@
  *   node scripts/inject-manifest.mjs [--dir <buildDir>] [--version <vX.Y.Z>] [--commit <sha>]
  *
  * Defaults:
- *   --dir       build-release
+ *   --dir       build
  *   --version   $GITHUB_REF_NAME or "dev"
  *   --commit    $GITHUB_SHA or short HEAD via `git rev-parse --short HEAD`
  */
@@ -21,7 +21,7 @@ import { resolve } from 'node:path';
 
 const args = parseArgs({
 	options: {
-		dir: { type: 'string', default: 'build-release' },
+		dir: { type: 'string', default: 'build' },
 		version: { type: 'string' },
 		commit: { type: 'string' },
 	},

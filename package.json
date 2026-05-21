@@ -7,7 +7,7 @@
 		"dev": "vite dev",
 		"build": "vite build",
 		"build:pages": "BASE_PATH=/wolt-stats vite build",
-		"build:release": "BASE_PATH= vite build --outDir build-release",
+		"build:release": "BASE_PATH= vite build",
 		"build:demo": "node ./scripts/build-demo-site.mjs",
 		"build:pages:demo": "node ./scripts/build-demo-site.mjs --pages",
 		"db:sync": "./scripts/sync-wolt-history.sh",
