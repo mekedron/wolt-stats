@@ -136,6 +136,11 @@ npm run dev
 
 Open `http://localhost:5173`.
 
+If you just want to view the dashboard against your own data, prefer
+`wolt stats` from [`wolt-cli`](https://github.com/mekedron/wolt-cli) (see
+the top of this README) — `npm run dev` is for working on the dashboard
+itself.
+
 ## Validate
 
 ```bash
