@@ -4,6 +4,26 @@ Unofficial hobby dashboard for exploring Wolt order history. Not affiliated with
 
 Live demo: https://mekedron.github.io/wolt-stats/
 
+> ## Use this dashboard through [`wolt-cli`](https://github.com/mekedron/wolt-cli)
+>
+> This dashboard is **fully integrated** with its companion project
+> **[wolt-cli](https://github.com/mekedron/wolt-cli)**, and that is the
+> recommended way to try it and see your own Wolt statistics.
+>
+> Just install `wolt-cli` and run:
+>
+> ```bash
+> wolt stats
+> ```
+>
+> It downloads a pre-built bundle of this dashboard, syncs your order
+> history into a local SQLite database, and opens everything in your
+> browser — no Node.js setup needed.
+>
+> **Heads up:** the **initial** order sync can take a long time — easily
+> **an hour or more** — because Wolt's API has very strict rate limits.
+> Subsequent runs are incremental and much faster.
+
 | Primary                                                                      | Secondary                                                                        | Tertiary                                                                       |
 | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
 | ![Primary desktop screenshot](docs/readme-assets/readme-desktop-primary.png) | ![Secondary desktop screenshot](docs/readme-assets/readme-desktop-secondary.png) | ![Tertiary desktop screenshot](docs/readme-assets/readme-desktop-tertiary.png) |
